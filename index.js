@@ -13,7 +13,7 @@ server.listen(port, function() {
 });
 
 // Routing  
-app.use(express.static(__dirname + '/p5_anim_gif'));
+app.use(express.static(__dirname + '/public'));
 
 //app.engine('html', ejs.__express);
 app.set('view engine', 'html');
@@ -30,19 +30,20 @@ var Rocket = function(rocketId, intX, intY) {
   this.x = intX;
   this.y = intY;
   this.angleDegrees = 0;
+  this.speed = Math.ceil(Math.random() * 10);
   this.isRunning = false;
 }
 
 const initSocket = function() {
   var namespace = io.of('/rocket');
   namespace.on('connection', function(socket) {
-    socket.on('create', function(rocketId) {
+    socket.on('login', function(rocketId, callback) {
       var rocket = new Rocket(rocketNum, 200, 200);
-      rocketNum++;
       rockets.push(rocket);
-      socket.emit('changeId', rocketNum - 1);
-      socket.join(1);
+      socket.emit('changeId', rocketNum);
       socket.broadcast.emit('create', rocket);
+      callback(rocket);
+      rocketNum++;
     });
     socket.on('control', function(data) {
       rockets.forEach(function(rocket) {
@@ -58,6 +59,6 @@ const initSocket = function() {
 
     setInterval(function() {
       socket.emit('sync', rockets);
-    }, 500)
+    }, 5000)
   })
 }
